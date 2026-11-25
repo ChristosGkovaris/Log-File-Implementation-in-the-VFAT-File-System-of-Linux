@@ -9,17 +9,13 @@
 
 ## Abstract
 
-This project implements an experimental diagnostic journaling extension
-for the VFAT filesystem within the Linux Kernel Library (LKL),
-using the C programming language.
+An experimental C-based extension of the VFAT filesystem within
+the Linux Kernel Library (LKL), introducing diagnostic journaling
+for filesystem activity, inode timestamps, and FAT metadata.
 
-The implementation investigates filesystem instrumentation,
-metadata tracking, persistent logging, and low-level integration
-with existing Linux filesystem code.
-
-The project aims to improve the observability of filesystem
-operations by recording diagnostic information associated with
-filesystem modifications, inode timestamps, and FAT metadata.
+The project explores Linux filesystem internals, low-level code
+instrumentation, persistent file I/O, and the engineering trade-offs
+between diagnostic visibility, storage durability, and I/O overhead.
 
 Originally developed as an Operating Systems project at the
 Department of Computer Science and Engineering,
@@ -35,7 +31,7 @@ University of Ioannina.
 - [Technical Implementation](#technical-implementation)
 - [Repository Structure](#repository-structure)
 - [Build and Execution](#build-and-execution)
-- [Validation Methodology](#validation-methodology)
+- [Validation and Performance Evaluation](#validation-and-performance-evaluation)
 - [Project Status and Limitations](#project-status-and-limitations)
 - [Development Roadmap](#development-roadmap)
 - [Technical References](#technical-references)
@@ -48,163 +44,104 @@ University of Ioannina.
 
 ## Project Objectives
 
-The primary objectives of this project are to:
-
-- Extend existing Linux filesystem code with diagnostic logging.
-- Investigate VFAT filesystem internals and operation handlers.
-- Capture inode timestamps and relevant filesystem metadata.
-- Record diagnostic information associated with filesystem modifications.
-- Explore append-based logging and persistent storage mechanisms.
-- Investigate filesystem synchronization and durability.
-- Develop practical experience in low-level C programming
-  and Linux kernel code maintenance.
-- Evaluate the behavior of filesystem modifications within
-  the Linux Kernel Library environment.
+- Extend an existing Linux filesystem implementation using C.
+- Introduce diagnostic instrumentation into VFAT source code.
+- Capture inode timestamps and relevant FAT metadata.
+- Investigate persistent logging and filesystem synchronization.
+- Preserve existing filesystem semantics during instrumentation.
+- Explore the relationship between logging, reliability, and
+  storage performance.
 
 ## System Architecture
 
-The following diagram illustrates the conceptual execution
-and diagnostic logging model of the project.
+The following diagram illustrates the conceptual filesystem
+instrumentation and diagnostic logging workflow.
 
 ```mermaid
 flowchart TD
-    A["User-Space Filesystem Operations"] --> B["Linux Kernel Library"]
-    B --> C["VFAT Filesystem"]
+    A["User-Space Operations"] --> B["Linux Kernel Library"]
+    B --> C["VFAT Operation Handlers"]
 
-    C --> D["Filesystem Operation Handlers"]
-    D --> E["Filesystem Modification"]
-    D --> F["Diagnostic Instrumentation"]
+    C --> D["Filesystem Operations"]
+    C --> E["Diagnostic Instrumentation"]
 
-    E --> G["VFAT Storage"]
+    D --> F["VFAT Storage"]
 
-    F --> H["Metadata Collection"]
-    H --> I["Inode Timestamps"]
-    H --> J["FAT Metadata"]
-
-    I --> K["Journal Entry"]
-    J --> K
-
-    K --> L["Append-Based Logging"]
-    L --> M["Persistence Synchronization"]
-    M --> N["Diagnostic Journal File"]
-
-    N --> O["Inspection and Analysis"]
+    E --> G["Inode and FAT Metadata"]
+    G --> H["Journal Record"]
+    H --> I["Append-Based Logging"]
+    I --> J["Persistence Synchronization"]
+    J --> K["Diagnostic Journal"]
 ```
 
-The conceptual architecture distinguishes filesystem operations,
-metadata collection, journal record construction, and persistent
-diagnostic logging.
-
-The journal is intended for inspection and debugging rather than
-transactional recovery.
+The diagnostic journal provides visibility into selected filesystem
+operations. It is not a transactional crash-recovery mechanism.
 
 ## Core Capabilities
 
 | Capability | Description |
 |---|---|
-| Filesystem instrumentation | Extension of existing VFAT-related source code with diagnostic logging logic. |
-| Metadata collection | Recording of relevant inode and FAT filesystem information. |
-| Timestamp tracking | Collection of timestamp information associated with filesystem activity. |
+| Filesystem instrumentation | Extension of existing FAT and VFAT source code. |
+| Metadata collection | Recording of inode timestamps and relevant FAT metadata. |
 | Diagnostic journaling | Generation of records for filesystem inspection and debugging. |
-| Append-based logging | Sequential addition of diagnostic information to a journal file. |
-| Storage synchronization | Use of synchronization mechanisms intended to persist logged information. |
+| Append-based logging | Addition of diagnostic records to a persistent log file. |
+| Storage synchronization | Exploration of persistence through file synchronization operations. |
 | LKL integration | Development within the Linux Kernel Library environment. |
-| Low-level systems programming | Modification and investigation of existing Linux filesystem code. |
 
 ## Technical Implementation
 
 ### Linux Kernel Library Integration
 
-The Linux Kernel Library provides an environment in which Linux
-kernel components can be integrated into user-space applications.
+The project uses LKL to investigate and modify Linux filesystem
+components within a user-space environment, without requiring
+deployment of a modified native host kernel.
 
-The project uses this environment to investigate VFAT filesystem
-behavior and extend selected filesystem-related source files
-without requiring deployment of a modified native host kernel.
+The repository contains selected modified source files intended
+for integration into a compatible upstream LKL source tree.
 
-The repository contains selected modified source files rather
-than a complete standalone Linux kernel distribution.
+### Filesystem Instrumentation
 
-### VFAT Filesystem Instrumentation
+Diagnostic instrumentation is introduced into selected FAT
+and VFAT components responsible for filesystem operations,
+inode management, and metadata handling.
 
-The implementation extends selected VFAT-related components
-to introduce diagnostic recording alongside filesystem activity.
+The implementation aims to collect additional diagnostic
+information while preserving the original filesystem behavior.
 
-The relevant source areas include:
+### Diagnostic Journaling and Metadata
 
-- Filesystem inode management.
-- VFAT directory and name-related operations.
-- FAT filesystem definitions and metadata structures.
-- LKL user-space filesystem tooling.
-
-The instrumentation is intended to preserve the original
-filesystem behavior while collecting additional diagnostic
-information.
-
-Behavioral equivalence with the upstream implementation has
-not been formally established.
-
-### Metadata Collection
-
-The diagnostic logging mechanism investigates information
-associated with filesystem state, including:
+The logging mechanism records information associated with
+selected filesystem activity, including:
 
 - Inode timestamps.
 - FAT filesystem metadata.
-- Information associated with filesystem modifications.
-- Contextual diagnostic records.
+- Diagnostic information associated with filesystem modifications.
+- Contextual records for subsequent inspection and debugging.
 
-The collected information provides visibility into selected
-filesystem operations and metadata changes.
-
-Complete coverage of all VFAT operations has not been established.
-
-### Diagnostic Journal
-
-The journal is designed to provide an inspectable record of
-filesystem activity.
-
-The logging approach incorporates:
-
-- Construction of diagnostic records.
-- Collection of relevant filesystem metadata.
-- Append-based file operations.
-- Persistent storage mechanisms.
-- Subsequent inspection of recorded information.
-
-The journal is a diagnostic mechanism and does not implement
-a verified transactional filesystem recovery protocol.
+Records are appended to a diagnostic journal for analysis.
 
 ### Persistence and Synchronization
 
-The project explores filesystem persistence through
-synchronization operations, including `fsync()` and `fdatasync()`.
+The project explores persistent file I/O through synchronization
+operations, including:
 
-These mechanisms are intended to reduce the risk of diagnostic
-records remaining exclusively in volatile buffers.
+- `fsync()` — synchronization of file data and associated metadata.
+- `fdatasync()` — synchronization of file data and metadata
+  required for subsequent data retrieval.
 
-The engineering considerations include:
+These operations introduce engineering trade-offs between
+storage durability, operation latency, and I/O overhead.
 
-- Buffered and persistent file I/O.
-- Synchronization of recorded information.
-- Data and metadata persistence.
-- Error handling during storage operations.
-- The relationship between durability and I/O overhead.
-
-Durability under unexpected termination or storage failure
-requires further verification.
+Crash-recovery and durability guarantees have not been established.
 
 ### Source Code Components
 
-| Component | Responsibility |
+| Source File | Responsibility |
 |---|---|
-| `src/fs/fat/fat.h` | FAT filesystem definitions and related declarations. |
-| `src/fs/fat/inode.c` | FAT filesystem inode-related implementation. |
-| `src/fs/fat/namei_vfat.c` | VFAT name and directory-related implementation. |
-| `src/tools/lkl/cptofs.c` | LKL user-space filesystem utility implementation. |
-
-The source files represent the areas involved in the academic
-filesystem extension.
+| `src/fs/fat/fat.h` | FAT filesystem definitions and declarations. |
+| `src/fs/fat/inode.c` | FAT inode management and filesystem implementation. |
+| `src/fs/fat/namei_vfat.c` | VFAT name and directory-related operations. |
+| `src/tools/lkl/cptofs.c` | LKL user-space filesystem utility. |
 
 ## Repository Structure
 
@@ -216,12 +153,12 @@ Log-File-Implementation-in-the-VFAT-File-System-of-Linux/
 ├── src/
 │   ├── fs/
 │   │   └── fat/
-│   │       ├── fat.h         # FAT definitions and declarations
-│   │       ├── inode.c       # FAT inode implementation
-│   │       └── namei_vfat.c  # VFAT name and directory operations
+│   │       ├── fat.h
+│   │       ├── inode.c
+│   │       └── namei_vfat.c
 │   └── tools/
 │       └── lkl/
-│           └── cptofs.c     # LKL filesystem utility
+│           └── cptofs.c
 ├── CHANGELOG.md              # Project change history
 ├── CODE_OF_CONDUCT.md        # Community conduct guidelines
 ├── CONTRIBUTING.md           # Contribution guidelines
@@ -233,15 +170,13 @@ Log-File-Implementation-in-the-VFAT-File-System-of-Linux/
 
 ### Prerequisites
 
-The intended development environment consists of:
-
 | Dependency | Purpose |
 |---|---|
-| GNU/Linux | Target development environment |
+| GNU/Linux | Development environment |
 | GCC or compatible C compiler | Source code compilation |
 | GNU Make | Build automation |
-| Linux Kernel Library | Filesystem integration environment |
-| VFAT filesystem support | Target filesystem implementation |
+| Linux Kernel Library | Filesystem integration |
+| VFAT support | Target filesystem |
 | Git | Version control |
 
 ### Clone the Repository
@@ -252,131 +187,83 @@ git clone https://github.com/ChristosGkovaris/Log-File-Implementation-in-the-VFA
 cd Log-File-Implementation-in-the-VFAT-File-System-of-Linux
 ```
 
-### Integration and Compilation
+### Integration and Execution
 
-The repository contains selected source files intended for
-integration into a compatible Linux Kernel Library source tree.
+The intended development workflow consists of:
 
-The original development workflow consists of:
+1. Obtain a compatible upstream LKL source tree.
+2. Integrate the modified FAT, VFAT, and LKL source files.
+3. Configure the required filesystem support and rebuild LKL.
+4. Initialize an isolated VFAT filesystem image.
+5. Execute filesystem operations within the LKL environment.
+6. Inspect the generated diagnostic journal.
 
-1. Obtain the appropriate LKL source tree.
-2. Identify the corresponding upstream VFAT source files.
-3. Integrate the modified source files.
-4. Configure the required filesystem support.
-5. Rebuild LKL using its build system.
-6. Prepare an isolated filesystem test environment.
+**Build status:** The compatible upstream revision and
+reproducible build procedure require further verification.
 
-**Build status:** The compatible upstream revision, dependency
-configuration, and reproducible build procedure require
-further verification.
+This repository is not a standalone executable distribution.
+Testing should use disposable filesystem images rather than
+production storage devices.
 
-The repository is not currently presented as a standalone,
-directly executable software distribution.
-
-### Execution Workflow
-
-Once the modified LKL environment has been successfully built:
-
-1. Prepare a disposable VFAT filesystem image.
-2. Initialize the LKL user-space environment.
-3. Execute filesystem operations within the test image.
-4. Inspect the resulting diagnostic journal.
-5. Compare recorded metadata against expected filesystem behavior.
-6. Investigate missing, inconsistent, or unexpected records.
-
-Testing should be performed using isolated filesystem images
-rather than production storage devices.
-
-## Validation Methodology
-
-A reproducible evaluation should investigate both filesystem
-behavior and diagnostic logging correctness.
+## Validation and Performance Evaluation
 
 ### Functional Validation
 
 | Test Scenario | Validation Objective |
 |---|---|
-| File creation | Investigate associated metadata and diagnostic records. |
-| File modification | Evaluate logging behavior during file updates. |
-| File deletion | Investigate diagnostic information associated with removal. |
-| Directory creation | Examine directory-related filesystem activity. |
-| Timestamp updates | Compare recorded timestamps with expected inode state. |
-| Repeated operations | Investigate consistency and ordering of journal entries. |
-| Storage synchronization | Evaluate persistence behavior after synchronization. |
-| Invalid operations | Investigate error handling and unexpected conditions. |
-
-These scenarios represent proposed validation procedures,
-not a claim that an automated test suite has been executed.
-
-### Reliability Evaluation
-
-Further reliability evaluation should investigate:
-
-- Diagnostic record completeness.
-- Metadata accuracy.
-- Error propagation.
-- Concurrent filesystem activity.
-- Logging-related resource management.
-- Behavior under storage failures.
-- Unexpected process termination.
+| File creation and modification | Inspect associated diagnostic records. |
+| File and directory operations | Investigate filesystem instrumentation coverage. |
+| Timestamp updates | Compare recorded and expected inode metadata. |
+| Repeated operations | Evaluate diagnostic record consistency. |
+| Storage synchronization | Investigate persistence behavior. |
+| Invalid operations | Evaluate error handling. |
 
 ### Performance Evaluation
 
-The diagnostic logging mechanism may introduce additional
-filesystem I/O and synchronization overhead.
-
-A structured evaluation should compare the original VFAT
-implementation against the modified implementation using:
+A comparative evaluation of the original and modified VFAT
+implementations should investigate:
 
 | Metric | Purpose |
 |---|---|
-| Operation latency | Evaluate the time required for filesystem operations. |
-| Logging overhead | Investigate the additional cost of diagnostic recording. |
-| I/O throughput | Compare storage operation efficiency. |
+| Operation latency | Measure filesystem operation completion time. |
+| I/O throughput | Evaluate storage operation efficiency. |
+| Logging overhead | Quantify the additional cost of instrumentation. |
 | Synchronization overhead | Evaluate the cost of persistence operations. |
-| Journal growth | Measure storage consumption over repeated workloads. |
+| Journal growth | Measure diagnostic storage consumption. |
 
-Performance results should include the operating environment,
-LKL revision, filesystem configuration, workload parameters,
-and measurement methodology.
+These tables define proposed validation procedures and
+evaluation metrics, rather than verified experimental results.
 
-No unverified performance improvements or durability
-guarantees are claimed.
+No unverified performance improvements are claimed.
 
 ## Project Status and Limitations
 
-This project is an experimental academic Linux
-systems-programming implementation.
+This project is an experimental academic systems-programming
+implementation.
 
-The following areas require further verification or development:
+Further verification is required in the following areas:
 
-- Identification of the compatible upstream LKL revision.
-- Reproducible compilation and integration procedures.
-- Verification of filesystem operation coverage.
-- Metadata and timestamp correctness.
-- Memory safety and resource management.
-- Concurrent filesystem behavior.
+- Upstream LKL revision and reproducible builds.
+- Filesystem operation coverage and metadata correctness.
+- Concurrent filesystem behavior and resource management.
 - Error handling and persistence guarantees.
 - Automated regression testing.
 - Quantitative performance evaluation.
-- Upstream source-code licensing compliance.
+- Upstream licensing compliance.
 
-The diagnostic journal does not constitute a verified
-transactional journaling filesystem and does not provide
-established crash-recovery guarantees.
-
-The implementation is not intended for production deployment.
+The implementation does not provide verified transactional
+journaling or crash-recovery guarantees and is not intended
+for production deployment.
 
 ## Development Roadmap
 
 - [ ] Identify and document the compatible upstream LKL revision.
-- [ ] Establish reproducible build and integration instructions.
-- [ ] Generate reviewable patches against the upstream source tree.
-- [ ] Review filesystem instrumentation and resource management.
-- [ ] Validate metadata and timestamp collection.
-- [ ] Investigate error handling and synchronization behavior.
-- [ ] Establish automated filesystem regression tests.
-- [ ] Evaluate diagnostic logging and persistence overhead.
+- [ ] Establish reproducible build and integration procedures.
+- [ ] Generate reviewable patches against upstream source code.
+- [ ] Review instrumentation, error handling, and resource management.
+- [ ] Validate filesystem metadata and diagnostic records.
+- [ ] Introduce automated filesystem regression tests.
+- [ ] Evaluate logging and synchronization overhead.
 - [ ] Verify upstream licensing and attribution requirements.
 - [ ] Establish continuous integration where technically feasible.
 - [ ] Publish reproducible validation and performance results.
@@ -399,13 +286,11 @@ The implementation is not intended for production deployment.
 
 ## Contributing
 
-Contributions related to filesystem correctness,
-diagnostic instrumentation, Linux integration,
-resource management, testing, and technical
+Contributions related to filesystem correctness, diagnostic
+instrumentation, Linux integration, testing, and technical
 documentation are welcome.
 
-Please refer to the following documents before
-submitting changes:
+Please refer to:
 
 - [Contribution Guidelines](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
@@ -413,8 +298,8 @@ submitting changes:
 
 ## Academic Attribution
 
-This project was originally developed as part of the
-Operating Systems coursework at:
+Originally developed as part of the Operating Systems
+coursework at:
 
 **Department of Computer Science and Engineering**  
 University of Ioannina  
@@ -434,12 +319,9 @@ Ioannina, Greece
 This repository contains modifications to existing Linux
 kernel and Linux Kernel Library source code.
 
-The applicable upstream licenses and copyright notices
-must be preserved. The repository-level LICENSE file
-does not supersede licensing requirements associated
-with upstream source files or derivative works.
+Applicable upstream licenses and copyright notices must
+be preserved. The repository-level LICENSE file does not
+supersede upstream licensing obligations.
 
-See the [LICENSE](LICENSE) file and the individual
-source-file licensing notices for further information.
-
+See [LICENSE](LICENSE) and individual source-file notices.
 A complete licensing review remains pending.
