@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Technical references and academic documentation links.
 - Development roadmap.
 - Documentation of project limitations and verification requirements.
-- Upstream licensing considerations.
+- GNU General Public License, version 2.
 
 ### Changed
 
@@ -28,6 +28,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Clarified the distinction between diagnostic journaling
   and transactional filesystem recovery.
 - Standardized academic attribution and author information.
+- Refined technical documentation to improve readability and consistency.
+
+### Licensing
+
+- Preserved the original MIT licensing notice in `LICENSE-MIT`.
+- Introduced the GPL version 2 license in `LICENSE`.
+- Documented existing upstream SPDX license declarations.
+- Clarified the scope of upstream and original project licensing.
+- Identified outstanding licensing and attribution verification requirements.
 
 ## [1.0.0] - Initial public version
 
@@ -52,7 +61,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Crash-recovery guarantees have not been established.
 - Automated regression testing is not yet established.
 - Quantitative performance results require further validation.
-- Upstream source-code licensing requires review.
+- Upstream source-code licensing requires further review.
 
 ---
 
@@ -62,3 +71,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - [Semantic Versioning](https://semver.org/)
 - [Linux Kernel Documentation](https://docs.kernel.org/)
 - [Linux Kernel Library](https://github.com/lkl/linux)
+- [GNU General Public License v2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
