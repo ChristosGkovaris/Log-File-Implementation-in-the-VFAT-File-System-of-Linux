@@ -316,12 +316,36 @@ Ioannina, Greece
 
 ## License
 
-This repository contains modifications to existing Linux
-kernel and Linux Kernel Library source code.
+This repository contains modified Linux kernel and
+Linux Kernel Library (LKL) source code.
 
-Applicable upstream licenses and copyright notices must
-be preserved. The repository-level LICENSE file does not
-supersede upstream licensing obligations.
+### Linux Kernel Components
 
-See [LICENSE](LICENSE) and individual source-file notices.
-A complete licensing review remains pending.
+The FAT and VFAT source files retain their original
+GNU General Public License, version 2 (GPL-2.0) terms.
+
+| Source File | License |
+|---|---|
+| `src/fs/fat/fat.h` | GPL-2.0 |
+| `src/fs/fat/inode.c` | GPL-2.0-only |
+| `src/fs/fat/namei_vfat.c` | GPL-2.0-only |
+| `src/tools/lkl/cptofs.c` | Upstream license verification pending |
+
+The full GPL version 2 license is available in [LICENSE](LICENSE).
+
+### Original Project Material
+
+The original MIT licensing notice is preserved in
+[LICENSE-MIT](LICENSE-MIT) and applies only where the
+original rights holders have validly granted those terms.
+
+### Upstream Attribution
+
+All applicable upstream copyright notices and SPDX
+license identifiers are retained.
+
+- [Linux Kernel](https://github.com/torvalds/linux)
+- [Linux Kernel Library](https://github.com/lkl/linux)
+
+A complete upstream licensing and attribution review
+remains pending.
